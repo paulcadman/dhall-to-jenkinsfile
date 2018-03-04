@@ -21,6 +21,9 @@ description:         Please see the README on Github at <https://github.com/paul
 
 dependencies:
 - base >= 4.7 && < 5
+- dhall
+- containers
+- text
 
 library:
   source-dirs: src

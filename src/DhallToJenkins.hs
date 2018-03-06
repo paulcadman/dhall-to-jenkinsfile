@@ -3,12 +3,12 @@
 
 module DhallToJenkins where
 
-import qualified Data.Map               as Map
-import           Data.Text.Lazy         (Text)
-import qualified Data.Text.Lazy.Builder as Builder
-import qualified Data.Text.Lazy.IO      as TL
+import qualified Data.HashMap.Strict.InsOrd as Map
+import           Data.Text.Lazy             (Text)
+import qualified Data.Text.Lazy.Builder     as Builder
+import qualified Data.Text.Lazy.IO          as TL
 import qualified Dhall
-import qualified Dhall.Core             as Expr (Expr (..))
+import qualified Dhall.Core                 as Expr (Expr (..))
 
 data Agent
   = Any

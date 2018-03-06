@@ -49,9 +49,4 @@ agentMaker =
   in Dhall.Type {..}
 
 labelMaker :: Dhall.Type Agent
-labelMaker =
-  let extract expr = do
-        Expr.TextLit builder <- return expr
-        return (Label (Builder.toLazyText builder))
-      expected = Expr.Text
-  in Dhall.Type {..}
+labelMaker = Label <$> Dhall.lazyText

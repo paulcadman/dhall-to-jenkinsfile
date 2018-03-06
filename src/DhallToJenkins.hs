@@ -37,16 +37,13 @@ agentMaker =
         case t of
           "none"  -> return None
           "any"   -> return Any
-          "label" -> Dhall.extract labelMaker e
+          "label" -> Dhall.extract (Label <$> Dhall.lazyText) e
           _       -> error "unexpected agent"
       expected =
         Expr.Union
           (Map.fromList
              [ ("none", Expr.Record Map.empty)
              , ("any", Expr.Record Map.empty)
-             , ("label", Dhall.expected labelMaker)
+             , ("label", Dhall.expected Dhall.lazyText)
              ])
   in Dhall.Type {..}
-
-labelMaker :: Dhall.Type Agent
-labelMaker = Label <$> Dhall.lazyText

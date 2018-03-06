@@ -1,11 +1,12 @@
 module Main where
 
+import           Data.Text.Lazy
 import qualified Data.Text.Lazy.IO as LazyText
-import DhallToJenkins
-import Dhall
+import           DhallToJenkins
+import           Pretty
 
 main :: IO ()
 main = do
   source <- LazyText.getContents
-  decoded <- input pipeline source
-  putStrLn $ show decoded
+  decoded <- dhallToJenkinsfile source
+  putStrLn $ unpack decoded

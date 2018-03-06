@@ -24,6 +24,7 @@ dependencies:
 - dhall
 - containers
 - text
+- prettyprinter
 
 library:
   source-dirs: src

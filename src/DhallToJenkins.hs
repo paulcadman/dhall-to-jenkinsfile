@@ -4,15 +4,16 @@
 module DhallToJenkins where
 
 import qualified Data.Map               as Map
-import qualified Data.Text.Lazy         as LazyText
+import           Data.Text.Lazy         (Text)
 import qualified Data.Text.Lazy.Builder as Builder
+import qualified Data.Text.Lazy.IO      as TL
 import qualified Dhall
 import qualified Dhall.Core             as Expr (Expr (..))
 
 data Agent
   = Any
   | None
-  | Label String
+  | Label Text
   deriving (Show)
 
 data Pipeline = Pipeline
@@ -51,6 +52,6 @@ labelMaker :: Dhall.Type Agent
 labelMaker =
   let extract expr = do
         Expr.TextLit builder <- return expr
-        return (Label $ LazyText.unpack (Builder.toLazyText builder))
+        return (Label (Builder.toLazyText builder))
       expected = Expr.Text
   in Dhall.Type {..}

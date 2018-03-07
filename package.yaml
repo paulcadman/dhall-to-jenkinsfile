@@ -50,3 +50,8 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - dhall-to-jenkins
+    - bytestring
+    - filepath
+    - tasty
+    - tasty-golden
+    - text

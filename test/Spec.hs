@@ -3,7 +3,7 @@
 module Main where
 
 import           Data.Text.Lazy.IO       (readFile)
-import           System.FilePath         (replaceExtension, takeBaseName)
+import           System.FilePath         (replaceExtension, takeBaseName, takeFileName)
 import           Test.Tasty              (TestTree, defaultMain, testGroup)
 import           Test.Tasty.Golden       (findByExtension, goldenVsString)
 
@@ -27,7 +27,7 @@ goldenTests = do
   return $
     testGroup
       "dhall-to-jenkinsfileContents golden tests"
-      [ goldenVsString "with constructors" jenkinsfile (jenkinsfileContents dhallFile)
+      [ goldenVsString (takeFileName dhallFile) jenkinsfile (jenkinsfileContents dhallFile)
       | dhallFile <- dhallFiles
       , let jenkinsfile = replaceExtension dhallFile ".jenkinsfile"
       ]

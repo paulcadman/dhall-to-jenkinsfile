@@ -3,27 +3,22 @@
 {-# LANGUAGE RecordWildCards   #-}
 
 module Pretty
-  ( dhallToJenkinsfile
+  ( dhallToJenkinsfileOutput
   ) where
 
-import           Data.Text.Lazy                        (Text)
+import           Data.Text.Lazy            (Text)
 import           Data.Text.Prettyprint.Doc
-import           Data.Text.Prettyprint.Doc.Render.Text
-import           Dhall
 import           DhallToJenkins
+import           PrettyHelper
+
+dhallToJenkinsfileOutput :: FilePath -> IO Text
+dhallToJenkinsfileOutput p = (dhallToJenkinsfile p) >>= prettyOutput
 
 sbraces :: Doc a -> Doc a
 sbraces d = braces (space <> d <> space)
 
 linebraces :: Doc a -> Doc a
 linebraces inner = vsep [nest 2 $ vsep [lbrace, inner], rbrace]
-
-dhallToJenkinsfile :: Text -> IO Text
-dhallToJenkinsfile t = do
-  doc <- input pipeline t
-  return $ render (pretty doc)
-  where
-    render = renderLazy . layoutPretty defaultLayoutOptions
 
 instance Pretty Pipeline where
   pretty Pipeline {..} = "pipeline" <+> (linebraces $ pretty agent)
@@ -36,3 +31,5 @@ instance Pretty Agent where
           Any -> "any"
           None -> "none"
           Label s -> sbraces $ "label" <+> (squotes (pretty s))
+          Node s ->
+            sbraces $ "node" <+> (sbraces $ "label" <+> (squotes (pretty s)))

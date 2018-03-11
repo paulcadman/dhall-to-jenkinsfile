@@ -25,6 +25,9 @@ dependencies:
 - insert-ordered-containers
 - text
 - prettyprinter
+- bytestring
+- optparse-applicative
+- filepath
 
 library:
   source-dirs: src

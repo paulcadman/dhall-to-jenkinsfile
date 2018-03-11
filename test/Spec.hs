@@ -18,8 +18,7 @@ main :: IO ()
 main = defaultMain =<< goldenTests
 
 jenkinsfileContents :: FilePath -> IO LBS.ByteString
-jenkinsfileContents p =
-  fmap (LazyText.encodeUtf8 . LazyText.strip) $ (LazyTextIO.readFile p) >>= dhallToJenkinsfile
+jenkinsfileContents p = LazyText.encodeUtf8 <$> dhallToJenkinsfileOutput p
 
 goldenTests :: IO TestTree
 goldenTests = do

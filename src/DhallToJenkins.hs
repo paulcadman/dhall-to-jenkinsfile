@@ -9,16 +9,21 @@ import qualified Data.Text.Lazy.Builder     as Builder
 import qualified Data.Text.Lazy.IO          as TL
 import qualified Dhall
 import qualified Dhall.Core                 as Expr (Expr (..))
+import           DhallHelper
 
 data Agent
   = Any
   | None
   | Label Text
+  | Node Text
   deriving (Show)
 
 data Pipeline = Pipeline
   { agent :: Agent
   } deriving (Show)
+
+dhallToJenkinsfile :: FilePath -> IO Pipeline
+dhallToJenkinsfile p = inputFromFilePath p pipeline
 
 pipeline :: Dhall.Type Pipeline
 pipeline =
@@ -38,6 +43,7 @@ agentMaker =
           "none"  -> return None
           "any"   -> return Any
           "label" -> Dhall.extract (Label <$> Dhall.lazyText) e
+          "node"  -> Dhall.extract (Label <$> Dhall.lazyText) e
           _       -> error "unexpected agent"
       expected =
         Expr.Union
@@ -45,5 +51,6 @@ agentMaker =
              [ ("none", Expr.Record Map.empty)
              , ("any", Expr.Record Map.empty)
              , ("label", Dhall.expected Dhall.lazyText)
+             , ("node", Dhall.expected Dhall.lazyText)
              ])
   in Dhall.Type {..}

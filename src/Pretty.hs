@@ -30,7 +30,9 @@ instance Pretty Agent where
         \case
           Any -> "any"
           None -> "none"
-          Label s -> sbraces $ "label" <+> (squotes (pretty s))
+          Label s -> sbraces $ "label" <+> (squotes $ pretty s)
           Node s ->
-            sbraces $ "node" <+> (sbraces $ "label" <+> (squotes (pretty s)))
-          AgentDocker Docker {..} -> sbraces $ "docker" <+> (sbraces $ "image" <+> (squotes (pretty (image))))
+            sbraces $ "node" <+> (sbraces $ "label" <+> (squotes $ pretty s))
+          AgentDocker Docker {..} ->
+            linebraces $
+            "docker" <+> (linebraces $ "image" <+> (squotes $ pretty image))

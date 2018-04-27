@@ -1,3 +1,7 @@
 pipeline {
-  agent { docker { image 'foo' } }
+  agent {
+    docker {
+      image 'foo'
+    }
+  }
 }

@@ -33,3 +33,4 @@ instance Pretty Agent where
           Label s -> sbraces $ "label" <+> (squotes (pretty s))
           Node s ->
             sbraces $ "node" <+> (sbraces $ "label" <+> (squotes (pretty s)))
+          AgentDocker Docker {..} -> sbraces $ "docker" <+> (sbraces $ "image" <+> (squotes (pretty (image))))

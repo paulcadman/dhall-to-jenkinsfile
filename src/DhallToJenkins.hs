@@ -11,11 +11,18 @@ import qualified Dhall
 import qualified Dhall.Core                 as Expr (Expr (..))
 import           DhallHelper
 
+data Docker = Docker
+  { image :: Text
+  , label :: Maybe Text
+  , args  :: Maybe Text
+  } deriving (Show)
+
 data Agent
   = Any
   | None
   | Label Text
   | Node Text
+  | AgentDocker Docker
   deriving (Show)
 
 data Pipeline = Pipeline
@@ -40,11 +47,12 @@ agentMaker =
   let extract expr = do
         Expr.UnionLit t e _ <- return expr
         case t of
-          "none"  -> return None
-          "any"   -> return Any
-          "label" -> Dhall.extract (Label <$> Dhall.lazyText) e
-          "node"  -> Dhall.extract (Label <$> Dhall.lazyText) e
-          _       -> error "unexpected agent"
+          "none"   -> return None
+          "any"    -> return Any
+          "label"  -> Dhall.extract (Label <$> Dhall.lazyText) e
+          "node"   -> Dhall.extract (Label <$> Dhall.lazyText) e
+          "docker" -> Dhall.extract (AgentDocker <$> dockerMaker) e
+          _        -> error "unexpected agent"
       expected =
         Expr.Union
           (Map.fromList
@@ -52,5 +60,27 @@ agentMaker =
              , ("any", Expr.Record Map.empty)
              , ("label", Dhall.expected Dhall.lazyText)
              , ("node", Dhall.expected Dhall.lazyText)
+             , ("docker", Dhall.expected (AgentDocker <$> dockerMaker))
+             ])
+  in Dhall.Type {..}
+
+dockerMaker :: Dhall.Type Docker
+dockerMaker =
+  let extract expr = do
+        Expr.RecordLit fields <- return expr
+        image <- Map.lookup "image" fields >>= Dhall.extract Dhall.lazyText
+        label <-
+          Map.lookup "label" fields >>=
+          Dhall.extract (Dhall.maybe Dhall.lazyText)
+        args <-
+          Map.lookup "args" fields >>=
+          Dhall.extract (Dhall.maybe Dhall.lazyText)
+        return Docker {..}
+      expected =
+        Expr.Record
+          (Map.fromList
+             [ ("image", Dhall.expected Dhall.lazyText)
+             , ("label", Dhall.expected (Dhall.maybe Dhall.lazyText))
+             , ("args", Dhall.expected (Dhall.maybe Dhall.lazyText))
              ])
   in Dhall.Type {..}

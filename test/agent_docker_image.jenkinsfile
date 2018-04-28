@@ -2,8 +2,6 @@ pipeline {
   agent {
     docker {
       image 'image'
-      label 'label'
-      args 'args'
     }
   }
 }

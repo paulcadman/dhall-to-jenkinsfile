@@ -6,6 +6,7 @@ module Pretty
   ( dhallToJenkinsfileOutput
   ) where
 
+import           Data.Maybe                (catMaybes)
 import           Data.Text.Lazy            (Text)
 import           Data.Text.Prettyprint.Doc
 import           DhallToJenkins
@@ -20,6 +21,13 @@ sbraces d = braces (space <> d <> space)
 linebraces :: Doc a -> Doc a
 linebraces inner = vsep [nest 2 $ vsep [lbrace, inner], rbrace]
 
+keyAndValue :: Pretty b => Doc a -> b -> Doc a
+keyAndValue name value = name <+> (squotes $ pretty value)
+
+keyAndMaybeValue :: Pretty b => Doc a -> Maybe b -> Maybe (Doc a)
+keyAndMaybeValue name (Just value) = Just (name <+> (squotes $ pretty value))
+keyAndMaybeValue name Nothing      = Nothing
+
 instance Pretty Pipeline where
   pretty Pipeline {..} = "pipeline" <+> (linebraces $ pretty agent)
 
@@ -30,9 +38,13 @@ instance Pretty Agent where
         \case
           Any -> "any"
           None -> "none"
-          Label s -> sbraces $ "label" <+> (squotes $ pretty s)
-          Node s ->
-            sbraces $ "node" <+> (sbraces $ "label" <+> (squotes $ pretty s))
+          Label s -> sbraces $ keyAndValue "label" s
+          Node s -> sbraces $ "node" <+> (sbraces $ keyAndValue "label" s)
           AgentDocker Docker {..} ->
             linebraces $
-            "docker" <+> (linebraces $ "image" <+> (squotes $ pretty image))
+            "docker" <+>
+            (linebraces $
+             vsep $
+             [keyAndValue "image" image] ++
+             (catMaybes
+                [keyAndMaybeValue "label" label, keyAndMaybeValue "args" args]))

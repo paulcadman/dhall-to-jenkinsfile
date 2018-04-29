@@ -1,0 +1,9 @@
+pipeline {
+  agent {
+    docker {
+      image 'myimage'
+      label 'mylabel'
+      args 'myargs'
+    }
+  }
+}

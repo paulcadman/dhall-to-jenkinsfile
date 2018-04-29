@@ -1,5 +1,6 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE RecordWildCards       #-}
 
 module DhallToJenkins where
 
@@ -11,11 +12,33 @@ import qualified Dhall
 import qualified Dhall.Core                 as Expr (Expr (..))
 import           DhallHelper
 
-data Docker = Docker
+data CustomDockerFile = CustomDockerFile
+  { dir                 :: Text
+  , filename            :: Maybe Text
+  , label               :: Maybe Text
+  , additionalBuildArgs :: Maybe Text
+  } deriving (Show)
+
+data CustomDockerImage = CustomDockerImage
   { image :: Text
   , label :: Maybe Text
   , args  :: Maybe Text
   } deriving (Show)
+
+data DockerFile
+  = DefaultFile
+  | CustomFile CustomDockerFile
+  deriving (Show)
+
+data DockerImage
+  = DefaultImage Text
+  | CustomImage CustomDockerImage
+  deriving (Show)
+
+data Docker
+  = File DockerFile
+  | Image DockerImage
+  deriving (Show)
 
 data Agent
   = Any
@@ -67,6 +90,37 @@ agentMaker =
 dockerMaker :: Dhall.Type Docker
 dockerMaker =
   let extract expr = do
+        Expr.UnionLit t e _ <- return expr
+        case t of
+          "image" -> Dhall.extract (Image <$> dockerImageMaker) e
+          _       -> error "unexpected docker"
+      expected =
+        Expr.Union
+          (Map.fromList [("image", Dhall.expected (Image <$> dockerImageMaker))])
+  in Dhall.Type {..}
+
+dockerImageMaker :: Dhall.Type DockerImage
+dockerImageMaker =
+  let extract expr = do
+        Expr.UnionLit t e _ <- return expr
+        case t of
+          "default" -> Dhall.extract (DefaultImage <$> Dhall.lazyText) e
+          "custom" ->
+            Dhall.extract (CustomImage <$> customDockerImageMaker) e
+          _ -> error "unexpected dockerimage"
+      expected =
+        Expr.Union
+          (Map.fromList
+             [ ( "default"
+               , Dhall.expected Dhall.lazyText)
+             , ( "custom"
+               , Dhall.expected (CustomImage <$> customDockerImageMaker))
+             ])
+  in Dhall.Type {..}
+
+customDockerImageMaker :: Dhall.Type CustomDockerImage
+customDockerImageMaker =
+  let extract expr = do
         Expr.RecordLit fields <- return expr
         image <- Map.lookup "image" fields >>= Dhall.extract Dhall.lazyText
         label <-
@@ -75,12 +129,12 @@ dockerMaker =
         args <-
           Map.lookup "args" fields >>=
           Dhall.extract (Dhall.maybe Dhall.lazyText)
-        return Docker {..}
+        return CustomDockerImage {..}
       expected =
         Expr.Record
           (Map.fromList
-             [ ("image", Dhall.expected Dhall.lazyText)
-             , ("label", Dhall.expected (Dhall.maybe Dhall.lazyText))
-             , ("args", Dhall.expected (Dhall.maybe Dhall.lazyText))
-             ])
+              [ ("image", Dhall.expected Dhall.lazyText)
+              , ("label", Dhall.expected (Dhall.maybe Dhall.lazyText))
+              , ("args", Dhall.expected (Dhall.maybe Dhall.lazyText))
+              ])
   in Dhall.Type {..}

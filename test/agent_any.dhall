@@ -1,2 +1,2 @@
-let Agent = ../dhall/types/agent.dhall
+let Agent = constructors ../dhall/types/agent.dhall
   in { agent = Agent.any {=} }

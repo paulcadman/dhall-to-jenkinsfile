@@ -1,1 +1,1 @@
-{ image : Text, label : Optional Text, args : Optional Text }
+< image : ./dockerimage.dhall >

@@ -40,11 +40,26 @@ instance Pretty Agent where
           None -> "none"
           Label s -> sbraces $ keyAndValue "label" s
           Node s -> sbraces $ "node" <+> (sbraces $ keyAndValue "label" s)
-          AgentDocker Docker {..} ->
-            linebraces $
-            "docker" <+>
-            (linebraces $
-             vsep $
-             [keyAndValue "image" image] ++
-             (catMaybes
-                [keyAndMaybeValue "label" label, keyAndMaybeValue "args" args]))
+          AgentDocker s -> pretty s
+
+instance Pretty Docker where
+  pretty a = content a
+    where
+      content =
+        \case
+          File _ -> "file"
+          Image s -> pretty s
+
+instance Pretty DockerImage where
+  pretty a = linebraces $ "docker" <+> (content a)
+    where
+      content =
+        \case
+          DefaultImage s -> squotes $ pretty s
+          CustomImage s -> linebraces $ pretty s
+
+instance Pretty CustomDockerImage where
+  pretty CustomDockerImage {..} =
+    vsep $
+    [keyAndValue "image" image] ++
+    (catMaybes [keyAndMaybeValue "label" label, keyAndMaybeValue "args" args])

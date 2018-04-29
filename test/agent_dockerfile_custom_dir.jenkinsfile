@@ -1,0 +1,7 @@
+pipeline {
+  agent {
+    dockerfile {
+      dir 'my/dir'
+    }
+  }
+}

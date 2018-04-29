@@ -1,0 +1,10 @@
+pipeline {
+  agent {
+    dockerfile {
+      dir 'my/dir'
+      filename 'other.dockerfile'
+      label 'mylabel'
+      additionalBuildArgs '-v l:l'
+    }
+  }
+}

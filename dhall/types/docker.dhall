@@ -1,1 +1,1 @@
-< image : ./dockerimage.dhall >
+< image : ./dockerimage.dhall | file : ./dockerfile.dhall >

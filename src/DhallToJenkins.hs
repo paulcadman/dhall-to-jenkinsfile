@@ -93,10 +93,32 @@ dockerMaker =
         Expr.UnionLit t e _ <- return expr
         case t of
           "image" -> Dhall.extract (Image <$> dockerImageMaker) e
+          "file" -> Dhall.extract (File <$> dockerFileMaker) e
           _       -> error "unexpected docker"
       expected =
         Expr.Union
-          (Map.fromList [("image", Dhall.expected (Image <$> dockerImageMaker))])
+          (Map.fromList [("image", Dhall.expected (Image <$> dockerImageMaker))
+                        , ("file", Dhall.expected (File <$> dockerFileMaker))
+                        ])
+  in Dhall.Type {..}
+
+dockerFileMaker :: Dhall.Type DockerFile
+dockerFileMaker =
+  let extract expr = do
+        Expr.UnionLit t e _ <- return expr
+        case t of
+          "default" -> return DefaultFile
+          "custom" ->
+            Dhall.extract (CustomFile <$> customDockerFileMaker) e
+          _ -> error "unexpected dockerfile"
+      expected =
+        Expr.Union
+          (Map.fromList
+             [ ( "default"
+               , Expr.Record Map.empty)
+             , ( "custom"
+               , Dhall.expected (CustomFile <$> customDockerFileMaker))
+             ])
   in Dhall.Type {..}
 
 dockerImageMaker :: Dhall.Type DockerImage
@@ -116,6 +138,31 @@ dockerImageMaker =
              , ( "custom"
                , Dhall.expected (CustomImage <$> customDockerImageMaker))
              ])
+  in Dhall.Type {..}
+
+customDockerFileMaker :: Dhall.Type CustomDockerFile
+customDockerFileMaker =
+  let extract expr = do
+        Expr.RecordLit fields <- return expr
+        dir <- Map.lookup "dir" fields >>= Dhall.extract Dhall.lazyText
+        filename <-
+          Map.lookup "filename" fields >>=
+          Dhall.extract (Dhall.maybe Dhall.lazyText)
+        label <-
+          Map.lookup "label" fields >>=
+          Dhall.extract (Dhall.maybe Dhall.lazyText)
+        additionalBuildArgs <-
+          Map.lookup "additionalBuildArgs" fields >>=
+          Dhall.extract (Dhall.maybe Dhall.lazyText)
+        return CustomDockerFile {..}
+      expected =
+        Expr.Record
+          (Map.fromList
+              [ ("dir", Dhall.expected Dhall.lazyText)
+              , ("filename", Dhall.expected (Dhall.maybe Dhall.lazyText))
+              , ("label", Dhall.expected (Dhall.maybe Dhall.lazyText))
+              , ("additionalBuildArgs", Dhall.expected (Dhall.maybe Dhall.lazyText))
+              ])
   in Dhall.Type {..}
 
 customDockerImageMaker :: Dhall.Type CustomDockerImage

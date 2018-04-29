@@ -47,7 +47,7 @@ instance Pretty Docker where
     where
       content =
         \case
-          File _ -> "file"
+          File s -> pretty s
           Image s -> pretty s
 
 instance Pretty DockerImage where
@@ -63,3 +63,21 @@ instance Pretty CustomDockerImage where
     vsep $
     [keyAndValue "image" image] ++
     (catMaybes [keyAndMaybeValue "label" label, keyAndMaybeValue "args" args])
+
+instance Pretty DockerFile where
+  pretty a = linebraces $ "dockerfile" <+> (content a)
+    where
+      content =
+        \case
+          DefaultFile -> "true"
+          CustomFile s -> linebraces $ pretty s
+
+instance Pretty CustomDockerFile where
+  pretty CustomDockerFile {..} =
+    vsep $
+    [keyAndValue "dir" dir] ++
+    (catMaybes
+       [ keyAndMaybeValue "filename" filename
+       , keyAndMaybeValue "label" label
+       , keyAndMaybeValue "additionalBuildArgs" additionalBuildArgs
+       ])

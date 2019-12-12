@@ -12,7 +12,7 @@ import           Data.Text.Prettyprint.Doc
 import           DhallToJenkins
 import           PrettyHelper
 
-dhallToJenkinsfileOutput :: FilePath -> IO Text
+dhallToJenkinsfileOutput :: FilePath -> IO Data.Text.Lazy.Text
 dhallToJenkinsfileOutput p = (dhallToJenkinsfile p) >>= prettyOutput
 
 sbraces :: Doc a -> Doc a
